@@ -7,10 +7,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import java.io.IOException
 import java.net.URL
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.io.*
+import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mangaURL : URL
     private lateinit var textView: TextView
     private var amountOfPages : Int = 0
-    private lateinit var urlsArray: ArrayList<String>
+    private var urlsArray: ArrayList<String> = arrayListOf()
 
 
 
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         textView = findViewById(R.id.textView)
 
         editTextNumber.setText("177013")
+        mangaURL = URL("https://nhentai.net/g/177013")
         textView.setTextColor(Color.rgb(200,0,0))
 
 
@@ -45,7 +47,7 @@ class MainActivity : AppCompatActivity() {
             if (editTextNumber.text.length.compareTo(6) == 0){
                 mangaURL = URL("https://nhentai.net/g/" + editTextNumber.text.toString())
                 Toast.makeText(this, "Searching for $mangaURL", Toast.LENGTH_SHORT).show()
-                getHtmlFromWeb()
+                getMangaInfo()
 
             } else {
                 Toast.makeText(this, "I said six fucking digits", Toast.LENGTH_SHORT).show()
@@ -57,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
             mangaURL = URL("https://nhentai.net/g/$id/")
             Toast.makeText(this, "Searching for $mangaURL", Toast.LENGTH_LONG).show()
-            getHtmlFromWeb()
+            getMangaInfo()
         }
         downloadButton.setOnClickListener{
             findImageURLs()
@@ -65,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getHtmlFromWeb() {
+    private fun getMangaInfo() {
         Thread {
             val stringBuilder = StringBuilder()
             try {
@@ -115,7 +117,23 @@ class MainActivity : AppCompatActivity() {
                     string.insert(string.length-4, i)
                     urlsArray.add(string.toString())
                 }
-            } catch (e: IOException){ }
+            } catch (e: Exception){ }
+
         }.start()
+
+        downloadImages()
+    }
+
+    private fun downloadImages(){
+
+        urlsArray.forEach {
+            val input : InputStream = URL(it).openStream()
+            val output : OutputStream = BufferedOutputStream(FileOutputStream("/storage/emulated/0/Download"))
+            output.write(input.read())
+            output.close()
+            input.close()
+        }
+
+
     }
 }
