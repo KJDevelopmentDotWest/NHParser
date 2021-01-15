@@ -83,6 +83,12 @@ class MainActivity : AppCompatActivity() {
                 title = doc.body().select("span[class=pretty]").first().ownText().toString()
                 stringBuilder.append("Title: ").append(title).append("\n")
 
+                runOnUiThread(){
+                    val downLocInfoText = StringBuilder("Download Location : \n/Download/$title")
+                    downLocInfo.text = downLocInfoText.toString()
+                }
+
+
                 var containerNum : Int = -1
                 do {
                     containerNum++
@@ -171,8 +177,6 @@ class MainActivity : AppCompatActivity() {
         val thread = Thread(){
 
             runOnUiThread(){
-                val downLocInfoText = StringBuilder("${downLocInfo.text} \n/Download/$title")
-                downLocInfo.text = downLocInfoText.toString()
                 message.append("downloading... please be patient nhentai has autism")
                 textView.text = message.toString()
             }
