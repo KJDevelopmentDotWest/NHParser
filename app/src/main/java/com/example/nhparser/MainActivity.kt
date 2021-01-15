@@ -88,7 +88,6 @@ class MainActivity : AppCompatActivity() {
                     downLocInfo.text = downLocInfoText.toString()
                 }
 
-
                 var containerNum : Int = -1
                 do {
                     containerNum++
