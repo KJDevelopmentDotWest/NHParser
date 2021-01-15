@@ -1,19 +1,23 @@
 package com.example.nhparser
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
-import java.net.URL
+import android.os.Environment
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import java.io.*
-import java.lang.Exception
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,8 +27,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var downloadButton : Button
     private lateinit var mangaURL : URL
     private lateinit var textView: TextView
+    private lateinit var title: String
     private var amountOfPages : Int = 0
     private var urlsArray: ArrayList<String> = arrayListOf()
+    private var bitmapArray : ArrayList<Bitmap?> = arrayListOf()
+    private var message: StringBuilder = StringBuilder()
 
 
 
@@ -38,10 +45,9 @@ class MainActivity : AppCompatActivity() {
         downloadButton = findViewById(R.id.downloadButton)
         textView = findViewById(R.id.textView)
 
-        editTextNumber.setText("177013")
+        editTextNumber.setText("344040")
         mangaURL = URL("https://nhentai.net/g/177013")
-        textView.setTextColor(Color.rgb(200,0,0))
-
+        textView.setTextColor(Color.rgb(200, 0, 0))
 
         searchButton.setOnClickListener {
             if (editTextNumber.text.length.compareTo(6) == 0){
@@ -62,32 +68,47 @@ class MainActivity : AppCompatActivity() {
             getMangaInfo()
         }
         downloadButton.setOnClickListener{
-            findImageURLs()
+            bitmapArray.clear()
+            downloadImages()
         }
 
     }
 
     private fun getMangaInfo() {
-        Thread {
+        bitmapArray.clear()
+
+        val thread = Thread() {
             val stringBuilder = StringBuilder()
             try {
                 val doc: Document = Jsoup.connect(mangaURL.toString()).get()
-                val title = doc.body().select("span[class=pretty]").first().ownText().toString()
+                title = doc.body().select("span[class=pretty]").first().ownText().toString()
                 stringBuilder.append("Title: ").append(title).append("\n")
 
                 var containerNum : Int = -1
                 do {
                     containerNum++
-                    val containerName = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select("div[id=info-block]").select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].ownText().toString()
+                    val containerName = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select(
+                        "div[id=info-block]"
+                    ).select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].ownText().toString()
                 } while (containerName != "Pages:")
-                amountOfPages = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select("div[id=info-block]").select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].select("span[class=name]").first().ownText().toInt()
+                amountOfPages = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select(
+                    "div[id=info-block]"
+                ).select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].select(
+                    "span[class=name]"
+                ).first().ownText().toInt()
 
                 containerNum = -1
                 do {
                     containerNum++
-                    val containerName = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select("div[id=info-block]").select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].ownText().toString()
+                    val containerName = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select(
+                        "div[id=info-block]"
+                    ).select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].ownText().toString()
                 } while (containerName != "Languages:")
-                val language = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select("div[id=info-block]").select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].select("span[class=name]").last().ownText().toString()
+                val language = doc.body().select("div[id=content]").select("div[id=bigcontainer]").select(
+                    "div[id=info-block]"
+                ).select("div[id=info]").select("section[id=tags]").select("div[class=tag-container field-name]")[containerNum].select(
+                    "span[class=name]"
+                ).last().ownText().toString()
 
                 stringBuilder.append("Pages Value: ").append(amountOfPages).append("\n")
                 stringBuilder.append("Language: ").append(language).append("\n")
@@ -100,40 +121,108 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 textView.text = stringBuilder.toString()
             }
-        }.start()
+        }
+
+        thread.name = "GetMangaInfoThread"
+        thread.start()
+
+        while (thread.isAlive){}
+
+        findImageURLs()
     }
 
     private fun findImageURLs(){
         urlsArray.clear()
 
-        Thread{
+        val thread = Thread(){
             val doc : Document = Jsoup.connect("$mangaURL/1").get()
-            val imgURL = doc.body().select("div[id=content]").select("section[id=image-container]").select("img[src]").first().attr("src").toString()
+            val imgURL = doc.body().select("div[id=content]").select("section[id=image-container]").select(
+                "img[src]"
+            ).first().attr("src").toString()
             try {
                 for (i in 1 .. amountOfPages){
                     val string = StringBuilder()
                     string.append(imgURL)
-                    string.deleteCharAt(string.length-5)
-                    string.insert(string.length-4, i)
+                    string.deleteCharAt(string.length - 5)
+                    string.insert(string.length - 4, i)
                     urlsArray.add(string.toString())
                 }
             } catch (e: Exception){ }
 
-        }.start()
+        }
+        thread.name = "FindImageURLsThread"
+        thread.start()
+    }
 
-        downloadImages()
+    private fun getBitmapFromURL(src: String?): Bitmap? {
+        return try {
+            val url = URL(src)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input = connection.inputStream
+            BitmapFactory.decodeStream(input)
+        } catch (e: IOException) {
+            null
+        }
     }
 
     private fun downloadImages(){
 
-        urlsArray.forEach {
-            val input : InputStream = URL(it).openStream()
-            val output : OutputStream = BufferedOutputStream(FileOutputStream("/storage/emulated/0/Download"))
-            output.write(input.read())
-            output.close()
-            input.close()
+
+        val thread = Thread(){
+
+            runOnUiThread(){
+                message.append("downloading.... please be patient nhentai has autism")
+                textView.text = message.toString()
+            }
+
+
+            urlsArray.forEachIndexed(){ i, it ->
+
+                bitmapArray.add(getBitmapFromURL(it))
+
+                runOnUiThread(){
+                    message.clear().append("downloading.... please be patient \nnhentai has autism").append("\n${i+1} of $amountOfPages downloaded")
+                    textView.text = message.toString()
+                }
+
+            }
+
+            val downloadFolderPath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            val path = StringBuilder("$downloadFolderPath")
+
+            bitmapArray.forEachIndexed() { i, it ->
+                val filename = StringBuilder(path).append("/${i+1}.png")
+                val file = File(filename.toString())
+                file.createNewFile()
+
+                try {
+                    FileOutputStream(filename.toString()).use { out ->
+                        it?.compress(
+                            Bitmap.CompressFormat.PNG,
+                            100,
+                            out
+                        )
+                    }
+                } catch (e: IOException) {
+                    textView.text = e.toString()
+                }
+
+                runOnUiThread(){
+                    message.clear().append("downloading.... please be patient nhentai has autism").append("\n${i+1} of $amountOfPages saved to storage")
+                    textView.text = message.toString()
+                }
+
+            }
+
+            runOnUiThread(){
+                message.append("\nSuccess")
+                textView.text = message.toString()
+            }
+
         }
 
-
+        thread.start()
     }
 }
