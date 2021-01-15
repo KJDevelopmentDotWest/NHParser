@@ -44,8 +44,8 @@ class MainActivity : AppCompatActivity() {
         textView = findViewById(R.id.textView)
         downLocInfo = findViewById(R.id.downLocInfo)
 
-        editTextNumber.setText("344040")
-        mangaURL = URL("https://nhentai.net/g/344040")
+        editTextNumber.setText("177013")
+        mangaURL = URL("https://nhentai.net/g/177013")
 
         searchButton.setOnClickListener {
             if (editTextNumber.text.length.compareTo(6) == 0){
