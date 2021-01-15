@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread(){
                 val downLocInfoText = StringBuilder("${downLocInfo.text} \n/Download/$title")
                 downLocInfo.text = downLocInfoText.toString()
-                message.append("downloading.... please be patient nhentai has autism")
+                message.append("downloading... please be patient nhentai has autism")
                 textView.text = message.toString()
             }
 
