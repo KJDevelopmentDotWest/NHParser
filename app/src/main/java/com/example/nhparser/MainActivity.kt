@@ -2,7 +2,6 @@ package com.example.nhparser
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Environment
 import android.widget.*
@@ -15,8 +14,6 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 
 class MainActivity : AppCompatActivity() {
@@ -192,10 +189,8 @@ class MainActivity : AppCompatActivity() {
 
             }
 
-            val downloadFolderPath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-            //val path = StringBuilder("$downloadFolderPath")
             val path = StringBuilder("/storage/emulated/0/Download/$title")
-            val directory : File = File(path.toString())
+            val directory = File(path.toString())
 
             if (!directory.exists()) directory.mkdir()
 
