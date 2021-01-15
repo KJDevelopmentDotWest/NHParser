@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         textView = findViewById(R.id.textView)
 
         editTextNumber.setText("344040")
-        mangaURL = URL("https://nhentai.net/g/177013")
+        mangaURL = URL("https://nhentai.net/g/344040")
         textView.setTextColor(Color.rgb(200, 0, 0))
 
         searchButton.setOnClickListener {
@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         randomButton.setOnClickListener {
             val random = Random()
             val id = random.nextInt(239999) + 100000
+            editTextNumber.setText("$id")
 
             mangaURL = URL("https://nhentai.net/g/$id/")
             Toast.makeText(this, "Searching for $mangaURL", Toast.LENGTH_LONG).show()
@@ -190,12 +191,16 @@ class MainActivity : AppCompatActivity() {
             }
 
             val downloadFolderPath = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-            val path = StringBuilder("$downloadFolderPath")
+            //val path = StringBuilder("$downloadFolderPath")
+            val path = StringBuilder("/storage/emulated/0/Download/$title")
+            val directory : File = File(path.toString())
+
+            if (!directory.exists()) directory.mkdir()
 
             bitmapArray.forEachIndexed() { i, it ->
                 val filename = StringBuilder(path).append("/${i+1}.png")
                 val file = File(filename.toString())
-                file.createNewFile()
+                if (!file.exists()) file.createNewFile()
 
                 try {
                     FileOutputStream(filename.toString()).use { out ->
