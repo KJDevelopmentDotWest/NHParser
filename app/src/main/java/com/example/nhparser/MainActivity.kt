@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var downloadButton : Button
     private lateinit var mangaURL : URL
     private lateinit var textView: TextView
+    private lateinit var downLocInfo: TextView
     private lateinit var title: String
     private var amountOfPages : Int = 0
     private var urlsArray: ArrayList<String> = arrayListOf()
@@ -44,10 +45,10 @@ class MainActivity : AppCompatActivity() {
         randomButton = findViewById(R.id.randomButton)
         downloadButton = findViewById(R.id.downloadButton)
         textView = findViewById(R.id.textView)
+        downLocInfo = findViewById(R.id.downLocInfo)
 
         editTextNumber.setText("344040")
         mangaURL = URL("https://nhentai.net/g/344040")
-        textView.setTextColor(Color.rgb(200, 0, 0))
 
         searchButton.setOnClickListener {
             if (editTextNumber.text.length.compareTo(6) == 0){
@@ -170,10 +171,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun downloadImages(){
 
-
         val thread = Thread(){
 
             runOnUiThread(){
+                val downLocInfoText = StringBuilder("${downLocInfo.text} \n/Download/$title")
+                downLocInfo.text = downLocInfoText.toString()
                 message.append("downloading.... please be patient nhentai has autism")
                 textView.text = message.toString()
             }
