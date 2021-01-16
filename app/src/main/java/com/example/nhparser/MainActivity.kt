@@ -185,6 +185,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+//    val createFile: () -> Unit = {
+//
+//            run {
+//                file.createNewFile()
+//            }
+//    }
+
     private fun downloadImages(){
 
         val thread = Thread(){
@@ -214,6 +221,7 @@ class MainActivity : AppCompatActivity() {
             bitmapArray.forEachIndexed() { i, it ->
                 val filename = StringBuilder(path).append("/${i+1}.png")
                 val file = File(filename.toString())
+                //synchronized(file, createFile)
                 if (!file.exists()) file.createNewFile()
 
                 try {
