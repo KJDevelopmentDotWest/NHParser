@@ -10,6 +10,8 @@ Fixed anr errors
 
 Fixed io errors (hopefully)
 
+Added preview image after manga search
+
 # Why
 App helps you download manga from NHentai without torrent
 
